@@ -1,6 +1,6 @@
 pipeline {
     agent any
- 
+
     environment {
         APP_NAME = 'app-hello-nti' 
         REPO_URL = "https://github.com/mohamedsala7320-sudo/CI-CD-repo.git"
@@ -45,7 +45,6 @@ pipeline {
                             sed -i 's|image:.*|image: ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}|g' K8s/deployment.yaml
                             kubectl apply -f K8s/deployment.yaml
                             kubectl apply -f K8s/service.yaml
-
                             kubectl get pods
                             kubectl get services
                         """
