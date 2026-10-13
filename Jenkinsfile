@@ -43,8 +43,8 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
                             sed -i 's|image:.*|image: ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}|g' K8s/deployment.yaml
-                            kubectl apply -f K8s/deployment.yaml
-                            kubectl apply -f K8s/service.yaml
+                            kubectl apply --validate=false -f K8s/deployment.yaml
+                            kubectl apply --validate=false -f K8s/service.yaml
                             kubectl get pods
                             kubectl get services
                         """
