@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = 'app-hello-nti' 
+        APP_NAME = 'python-app'
         REPO_URL = "https://github.com/mohamedsala7320-sudo/CI-CD-repo.git"
     }
 
@@ -42,9 +42,14 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
+                            # 1. تحديث اسم الصورة ورقم الـ Build في ملف الـ Deployment
                             sed -i 's|image:.*|image: ${DOCKER_USERNAME}/${APP_NAME}:${BUILD_NUMBER}|g' K8s/deployment.yaml
-                            kubectl apply --validate=false -f K8s/deployment.yaml
-                            kubectl apply --validate=false -f K8s/service.yaml
+
+                            # 2. تطبيق التعديلات على Minikube
+                            kubectl apply -f K8s/deployment.yaml
+                            kubectl apply -f K8s/service.yaml
+
+                            # 3. عرض حالة الـ Pods والـ Services
                             kubectl get pods
                             kubectl get services
                         """
