@@ -13,12 +13,6 @@ pipeline {
             }
         }
 
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/mohamedsala7320-sudo/CI-CD-repo.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -40,8 +34,8 @@ pipeline {
 
         stage('Deploy to Minikube') {
             steps {
-                sh 'kubectl apply -f deployment.yaml --validate=false'
-                sh 'kubectl apply -f service.yaml --validate=false'
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
                 sh 'kubectl rollout restart deployment/flask-app-deployment'
             }
         }
