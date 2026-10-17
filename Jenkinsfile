@@ -22,8 +22,7 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER_VAR', passwordVariable: 'DOCKER_PASS_VAR')]) {
-                    sh 'echo $DOCKER_PASS_VAR | docker login -u $DOCKER_USER_VAR --password-stdin'
+withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER_VAR', passwordVariable: 'DOCKER_PASS_VAR')]) {                    sh 'echo $DOCKER_PASS_VAR | docker login -u $DOCKER_USER_VAR --password-stdin'
                     sh 'docker push $DOCKER_USER/$APP_NAME:$BUILD_NUMBER'
                     sh 'docker push $DOCKER_USER/$APP_NAME:latest'
                 }
