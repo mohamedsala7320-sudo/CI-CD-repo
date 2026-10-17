@@ -29,10 +29,10 @@ withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable
             }
         }
 
-        stage('Deploy to Minikube') {
+stage('Deploy to Minikube') {
             steps {
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
+                sh 'kubectl apply -f K8s/deployment.yaml'
+                sh 'kubectl apply -f K8s/service.yaml'
                 sh 'kubectl rollout restart deployment/flask-app-deployment'
             }
         }
