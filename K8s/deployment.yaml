@@ -1,26 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: python-app-deployment
+  name: flask-app-deployment
+  labels:
+    app: flask-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: python-app
+      app: flask-app
   template:
     metadata:
       labels:
-        app: python-app
+        app: flask-app
     spec:
       containers:
-      - name: python-app
-        image: mosala7320/python-app:latest
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
+      - name: flask-app
+        image: mosala7320/flask-app:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000

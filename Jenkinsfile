@@ -2,53 +2,39 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = 'python-app'
-        REPO_URL = "https://github.com/mohamedsala7320-sudo/CI-CD-repo.git"
+        APP_NAME = 'flask-app'
+        DOCKER_USER = 'mosala7320'
     }
 
     stages {
-        stage('Getting Repo files') {
+        stage('Checkout') {
             steps {
-                git branch: "main", url: "${REPO_URL}"
+                git branch: 'main', url: 'https://github.com/mohamedsala7320-sudo/CI-CD-repo.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    bat """
-                        docker build -t ${APP_NAME}:${BUILD_NUMBER} .
-                    """
-                }
+                sh 'docker build -t $DOCKER_USER/$APP_NAME:$BUILD_NUMBER .'
+                sh 'docker tag $DOCKER_USER/$APP_NAME:$BUILD_NUMBER $DOCKER_USER/$APP_NAME:latest'
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push to Docker Hub') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        bat """
-                            echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                            docker tag ${APP_NAME}:${BUILD_NUMBER} %DOCKER_USERNAME%/${APP_NAME}:${BUILD_NUMBER}
-                            docker push %DOCKER_USERNAME%/${APP_NAME}:${BUILD_NUMBER}
-                        """
-                    }
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER_VAR', passwordVariable: 'DOCKER_PASS_VAR')]) {
+                    sh 'echo $DOCKER_PASS_VAR | docker login -u $DOCKER_USER_VAR --password-stdin'
+                    sh 'docker push $DOCKER_USER/$APP_NAME:$BUILD_NUMBER'
+                    sh 'docker push $DOCKER_USER/$APP_NAME:latest'
                 }
             }
         }
 
         stage('Deploy to Minikube') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        bat """
-                            kubectl apply -f K8s/deployment.yaml
-                            kubectl apply -f K8s/service.yaml
-                            kubectl get pods
-                            kubectl get services
-                        """
-                    }
-                }
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
+                sh 'kubectl rollout restart deployment/flask-app-deployment'
             }
         }
     }
