@@ -2,11 +2,17 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = 'flask-app'
-        DOCKER_USER = 'mosala7320'
+        DOCKER_CRED = credentials('docker-cred')
+        IMAGE_NAME = 'mosala7320/flask-app'
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/mohamedsala7320-sudo/CI-CD-repo.git'
@@ -15,24 +21,27 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_USER/$APP_NAME:$BUILD_NUMBER .'
-                sh 'docker tag $DOCKER_USER/$APP_NAME:$BUILD_NUMBER $DOCKER_USER/$APP_NAME:latest'
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                    sh "docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${IMAGE_NAME}:latest"
+                }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER_VAR', passwordVariable: 'DOCKER_PASS_VAR')]) {                    sh 'echo $DOCKER_PASS_VAR | docker login -u $DOCKER_USER_VAR --password-stdin'
-                    sh 'docker push $DOCKER_USER/$APP_NAME:$BUILD_NUMBER'
-                    sh 'docker push $DOCKER_USER/$APP_NAME:latest'
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER_VAR', passwordVariable: 'DOCKER_PASS_VAR')]) {
+                    sh "echo ${DOCKER_PASS_VAR} | docker login -u ${DOCKER_USER_VAR} --password-stdin"
+                    sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    sh "docker push ${IMAGE_NAME}:latest"
                 }
             }
         }
 
-stage('Deploy to Minikube') {
+        stage('Deploy to Minikube') {
             steps {
-                sh 'kubectl apply -f K8s/deployment.yaml'
-                sh 'kubectl apply -f K8s/service.yaml'
+                sh 'kubectl apply -f K8s/deployment.yaml --validate=false'
+                sh 'kubectl apply -f K8s/service.yaml --validate=false'
                 sh 'kubectl rollout restart deployment/flask-app-deployment'
             }
         }
