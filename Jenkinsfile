@@ -34,8 +34,8 @@ pipeline {
 
         stage('Deploy to Minikube') {
             steps {
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
+                sh 'kubectl apply -f deployment.yaml --validate=false'
+                sh 'kubectl apply -f service.yaml --validate=false'
                 sh 'kubectl rollout restart deployment/flask-app-deployment'
             }
         }
